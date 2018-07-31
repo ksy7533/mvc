@@ -3,6 +3,36 @@ var budgetController = (function() {})();
 var UIController = (function() {})();
 
 var controller = (function(budgetCtrl, UICtrl) {
+    var totalBudget = 0;
+    var totalIncome = 0;
+    var totalExpense = 0;
+
+    function updateList() {
+        addListItem();
+        updateTotalBudget();
+    }
+
+    function updateTotalBudget() {
+        var type = document.querySelector('.add__type').value;
+        var value = parseInt(document.querySelector('.add__value').value);
+
+        if (type === 'income') {
+            totalIncome += value;
+        } else if (type === 'expense') {
+            totalExpense += value;
+        }
+
+        totalBudget = totalIncome - totalExpense;
+
+        var incomeValue = document.querySelector('.budget__income--value');
+        var expenseValue = document.querySelector('.budget__expenses--value');
+        var budgetValue = document.querySelector('.budget__value');
+
+        incomeValue.textContent = totalIncome;
+        expenseValue.textContent = totalExpense;
+        budgetValue.textContent = totalBudget;
+    }
+
     function addListItem() {
         var type = document.querySelector('.add__type').value;
         var description = document.querySelector('.add__description').value;
@@ -25,11 +55,11 @@ var controller = (function(budgetCtrl, UICtrl) {
         list.insertAdjacentHTML('beforeend', rHtml);
     };
 
-    document.querySelector('.add__btn').addEventListener('click', addListItem);
+    document.querySelector('.add__btn').addEventListener('click', updateList);
     document.addEventListener('keypress', function(event) {
         if (event.keyCode !== 13) {
             return;
         }
-        addListItem();
+        updateList();
     });
 })(budgetController, UIController)
