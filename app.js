@@ -304,7 +304,7 @@ var controller = (function(budgetCtrl, UICtrl) {
             setupEventListeners();
         }
     }
-
+ 
 })(budgetController, UIController)
 
 controller.init()
