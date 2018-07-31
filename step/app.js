@@ -1,18 +1,11 @@
 var budgetController = (function() {})();
 
-var UIController = (function() {})();
-
-var controller = (function(budgetCtrl, UICtrl) {
+var UIController = (function() {
     var totalBudget = 0;
     var totalIncome = 0;
     var totalExpense = 0;
 
-    function updateList() {
-        addListItem();
-        updateTotalBudget();
-    }
-
-    function updateTotalBudget() {
+    var updateTotalBudget = function() {
         var type = document.querySelector('.add__type').value;
         var value = parseInt(document.querySelector('.add__value').value);
 
@@ -33,7 +26,7 @@ var controller = (function(budgetCtrl, UICtrl) {
         budgetValue.textContent = totalBudget;
     }
 
-    function addListItem() {
+    var addListItem = function() {
         var type = document.querySelector('.add__type').value;
         var description = document.querySelector('.add__description').value;
         var value = document.querySelector('.add__value').value;
@@ -54,6 +47,19 @@ var controller = (function(budgetCtrl, UICtrl) {
         rHtml = rHtml.replace('{{value}}', value);
         list.insertAdjacentHTML('beforeend', rHtml);
     };
+
+    return {
+        updateTotalBudget: updateTotalBudget,
+        addListItem: addListItem
+    }
+
+})();
+
+var controller = (function(budgetCtrl, UICtrl) {
+    function updateList() {
+        UICtrl.addListItem();
+        UICtrl.updateTotalBudget();
+    }
 
     document.querySelector('.add__btn').addEventListener('click', updateList);
     document.addEventListener('keypress', function(event) {
