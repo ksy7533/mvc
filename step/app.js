@@ -1,4 +1,41 @@
-var budgetController = (function() {})();
+var budgetController = (function() {
+
+    function Income(obj) {
+        this.type = obj.type;
+        this.value = obj.value;
+        this.description = obj.description;
+    }
+
+    function Expense(obj) {
+        this.type = obj.type;
+        this.value = obj.value;
+        this.description = obj.description;
+    }
+
+    var addInpuData = function(obj) {
+        var type = obj.type;
+        if (type === 'income') {
+            data[type].push(new Income(obj));
+        } else if (type === 'expenses') {
+            data[type].push(new Expense(obj));
+        }
+    }
+
+    var data = {
+        income: [],
+        expense: [],
+        totals: {
+            income: 0,
+            expense: 0,
+            budget: 0
+        }
+    }
+
+    return {
+        addInpuData: addInpuData
+    }
+
+})();
 
 var UIController = (function() {
     var DOMStrings = {
@@ -76,6 +113,7 @@ var controller = (function(budgetCtrl, UICtrl) {
     function updateList() {
         var inputData = UICtrl.getInputData();
         UICtrl.addListItem(inputData);
+        budgetCtrl.addInpuData(inputData);
         UICtrl.updateTotalBudget(inputData);
     }
 
