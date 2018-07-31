@@ -21,6 +21,19 @@ var budgetController = (function() {
         }
     }
 
+    var sumTotal = function(inputData) {
+        if (inputData.type === 'income') {
+            data.totals.income += inputData.value;
+        } else if (inputData.type === 'expense') {
+            data.totals.expense += inputData.value;
+        }
+        data.totals.budget = data.totals.income - data.totals.expense;
+    }
+
+    var getTotal = function() {
+        return data.totals;
+    }
+
     var data = {
         income: [],
         expense: [],
@@ -32,7 +45,9 @@ var budgetController = (function() {
     }
 
     return {
-        addInpuData: addInpuData
+        addInpuData: addInpuData,
+        sumTotal: sumTotal,
+        getTotal: getTotal
     }
 
 })();
@@ -50,10 +65,6 @@ var UIController = (function() {
         EXPENSE_LIST: '.expenses__list'
     }
 
-    var totalBudget = 0;
-    var totalIncome = 0;
-    var totalExpense = 0;
-
     var getInputData = function() {
         return {
             type: document.querySelector(DOMStrings.ADD_TYPE).value,
@@ -62,22 +73,10 @@ var UIController = (function() {
         }
     }
 
-    var updateTotalBudget = function(inputData) {
-        if (inputData.type === 'income') {
-            totalIncome += inputData.value;
-        } else if (inputData.type === 'expense') {
-            totalExpense += inputData.value;
-        }
-
-        totalBudget = totalIncome - totalExpense;
-
-        var incomeValue = document.querySelector(DOMStrings.BUDGET_INCOME_VALUE);
-        var expenseValue = document.querySelector(DOMStrings.BUDGET_EXPENSES_VALUE);
-        var budgetValue = document.querySelector(DOMStrings.BUDGET_VALUE);
-
-        incomeValue.textContent = totalIncome;
-        expenseValue.textContent = totalExpense;
-        budgetValue.textContent = totalBudget;
+    var updateTotalBudget = function(totals) {
+        document.querySelector(DOMStrings.BUDGET_INCOME_VALUE).textContent = totals.income;
+        document.querySelector(DOMStrings.BUDGET_EXPENSES_VALUE).textContent = totals.expense;
+        document.querySelector(DOMStrings.BUDGET_VALUE).textContent = totals.budget;
     }
 
     var addListItem = function(inputData) {
@@ -112,9 +111,13 @@ var UIController = (function() {
 var controller = (function(budgetCtrl, UICtrl) {
     function updateList() {
         var inputData = UICtrl.getInputData();
+
         UICtrl.addListItem(inputData);
         budgetCtrl.addInpuData(inputData);
-        UICtrl.updateTotalBudget(inputData);
+
+        budgetCtrl.sumTotal(inputData);
+        var totals = budgetCtrl.getTotal();
+        UICtrl.updateTotalBudget(totals);
     }
 
     document.querySelector(UICtrl.DOMStrings.ADD_BTN).addEventListener('click', updateList);
