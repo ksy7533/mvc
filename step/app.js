@@ -2,34 +2,28 @@ var tempData = {
     income: [{
         type: 'income',
         description: 'salary',
-        value: 1000,
-        id: 1
+        value: 1000
     }, {
         type: 'income',
         description: 'alba',
-        value: 300,
-        id: 2
+        value: 300
     }, {
         type: 'income',
         description: 'incentive',
-        value: 400,
-        id: 3
+        value: 400
     }],
     expense: [{
         type: 'expense',
         description: 'phone',
-        value: 100,
-        id: 1
+        value: 100
     }, {
         type: 'expense',
         description: 'food',
-        value: 300,
-        id: 2
+        value: 300
     }, {
         type: 'expense',
         description: 'health',
-        value: 100,
-        id: 3
+        value: 100
     }],
 }
 
@@ -38,12 +32,14 @@ var budgetController = (function() {
         this.type = obj.type;
         this.value = obj.value;
         this.description = obj.description;
+        this.id = obj.id;
     }
 
     function Expense(obj) {
         this.type = obj.type;
         this.value = obj.value;
         this.description = obj.description;
+        this.id = obj.id;
     }
 
     function sumTotal(inputData) {
@@ -55,11 +51,24 @@ var budgetController = (function() {
         data.totals.budget = data.totals.income - data.totals.expense;
     }
 
-    var addInpuData = function(obj) {
-        var type = obj.type;
+    function createDataID(type) {
+        var dataID;
+        if (data[type].length > 0) {
+            dataID = data[type][data[type].length - 1].id + 1;
+        } else {
+            dataID = 0;
+        }
+        return dataID;
+    }
+
+    var addInputData = function(obj) {
+        var type;
+        type = obj.type;
+        obj.id = createDataID(type);
+
         if (type === 'income') {
             data[type].push(new Income(obj));
-        } else if (type === 'expenses') {
+        } else if (type === 'expense') {
             data[type].push(new Expense(obj));
         }
     }
@@ -73,6 +82,10 @@ var budgetController = (function() {
         return data.totals;
     }
 
+    var printData = function() {
+        return data;
+    }
+
     var data = {
         income: [],
         expense: [],
@@ -84,10 +97,12 @@ var budgetController = (function() {
     }
 
     return {
-        addInpuData: addInpuData,
+        addInputData: addInputData,
         sumTotal: sumTotal,
         calculateTotal: calculateTotal,
-        getTotals: getTotals
+        getTotals: getTotals,
+
+        printData: printData
     }
 
 })();
@@ -131,14 +146,15 @@ var UIController = (function() {
         var html, rHtml, list;
 
         if (inputData.type === 'income') {
-            html = '<div class="item clearfix" id="income-0"><div class="item__description">{{description}}</div><div class="right clearfix"><div class="item__value">{{value}}</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+            html = '<div class="item clearfix" id="income-{{id}}"><div class="item__description">{{description}}</div><div class="right clearfix"><div class="item__value">{{value}}</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
             list = document.querySelector(DOMStrings.INCOME_LIST);
         } else if (inputData.type === 'expense') {
-            html = '<div class="item clearfix" id="expense-0"><div class="item__description">{{description}}</div><div class="right clearfix"><div class="item__value">{{value}}</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+            html = '<div class="item clearfix" id="expense-{{id}}"><div class="item__description">{{description}}</div><div class="right clearfix"><div class="item__value">{{value}}</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
             list = document.querySelector(DOMStrings.EXPENSE_LIST);
         }
 
         rHtml = html.replace('{{description}}', inputData.description);
+        rHtml = rHtml.replace('{{id}}', inputData.id);
         rHtml = rHtml.replace('{{value}}', inputData.value);
         list.insertAdjacentHTML('beforeend', rHtml);
         clearInput();
@@ -166,7 +182,7 @@ var controller = (function(budgetCtrl, UICtrl) {
         if (isNaN(inputData.value) || inputData.description === '') {
             return;
         }
-        budgetCtrl.addInpuData(inputData);
+        budgetCtrl.addInputData(inputData);
         UICtrl.addListItem(inputData);
         updateBudget(inputData);
     }
@@ -187,12 +203,14 @@ var controller = (function(budgetCtrl, UICtrl) {
 
     function initRender(data) {
         data['income'].forEach(function(item) {
-            UIController.addListItem(item);
+            budgetCtrl.addInputData(item);
             budgetCtrl.sumTotal(item);
+            UIController.addListItem(item);
         });
         data['expense'].forEach(function(item) {
-            UIController.addListItem(item);
+            budgetCtrl.addInputData(item);
             budgetCtrl.sumTotal(item);
+            UIController.addListItem(item);
         });
         UICtrl.updateTotalBudget(budgetCtrl.getTotals());
     }
