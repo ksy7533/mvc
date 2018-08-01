@@ -107,24 +107,34 @@ var UIController = (function() {
 
 var controller = (function(budgetCtrl, UICtrl) {
     function updateList() {
-        var inputData = UICtrl.getInputData();
-
+        var inputData, totals;
+        inputData = UICtrl.getInputData();
         if (isNaN(inputData.value) || inputData.description === '') {
             return;
         }
-
         UICtrl.addListItem(inputData);
         budgetCtrl.addInpuData(inputData);
-
-        var totals = budgetCtrl.calculateTotal(inputData);
+        totals = budgetCtrl.calculateTotal(inputData);
         UICtrl.updateTotalBudget(totals);
     }
 
-    document.querySelector(UICtrl.DOMStrings.ADD_BTN).addEventListener('click', updateList);
-    document.addEventListener('keypress', function(event) {
-        if (event.keyCode !== 13) {
-            return;
-        }
-        updateList();
-    });
+    function setEvent() {
+        document.querySelector(UICtrl.DOMStrings.ADD_BTN).addEventListener('click', updateList);
+        document.addEventListener('keypress', function(event) {
+            if (event.keyCode !== 13) {
+                return;
+            }
+            updateList();
+        });
+    }
+
+    var init = function() {
+        setEvent();
+    }
+
+    return {
+        init: init
+    }
 })(budgetController, UIController)
+
+controller.init();
