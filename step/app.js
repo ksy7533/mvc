@@ -66,6 +66,14 @@ var UIController = (function() {
         EXPENSE_LIST: '.expenses__list'
     }
 
+    function clearInput() {
+        var description;
+        description = document.querySelector(DOMStrings.ADD_DESCRIPTION);
+        description.value = '';
+        document.querySelector(DOMStrings.ADD_VALUE).value = '';
+        description.focus();
+    }
+
     var getInputData = function() {
         return {
             type: document.querySelector(DOMStrings.ADD_TYPE).value,
@@ -94,6 +102,7 @@ var UIController = (function() {
         rHtml = html.replace('{{description}}', inputData.description);
         rHtml = rHtml.replace('{{value}}', inputData.value);
         list.insertAdjacentHTML('beforeend', rHtml);
+        clearInput();
     };
 
     return {
@@ -145,6 +154,7 @@ var controller = (function(budgetCtrl, UICtrl) {
     return {
         init: init
     }
+
 })(budgetController, UIController)
 
 controller.init();
