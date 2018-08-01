@@ -1,5 +1,39 @@
-var budgetController = (function() {
+var tempData = {
+    income: [{
+        type: 'income',
+        description: 'salary',
+        value: 1000,
+        id: 1
+    }, {
+        type: 'income',
+        description: 'alba',
+        value: 300,
+        id: 2
+    }, {
+        type: 'income',
+        description: 'incentive',
+        value: 400,
+        id: 3
+    }],
+    expense: [{
+        type: 'expense',
+        description: 'phone',
+        value: 100,
+        id: 1
+    }, {
+        type: 'expense',
+        description: 'food',
+        value: 300,
+        id: 2
+    }, {
+        type: 'expense',
+        description: 'health',
+        value: 100,
+        id: 3
+    }],
+}
 
+var budgetController = (function() {
     function Income(obj) {
         this.type = obj.type;
         this.value = obj.value;
@@ -35,6 +69,10 @@ var budgetController = (function() {
         return data.totals;
     }
 
+    var getTotals = function() {
+        return data.totals;
+    }
+
     var data = {
         income: [],
         expense: [],
@@ -48,7 +86,8 @@ var budgetController = (function() {
     return {
         addInpuData: addInpuData,
         sumTotal: sumTotal,
-        calculateTotal: calculateTotal
+        calculateTotal: calculateTotal,
+        getTotals: getTotals
     }
 
 })();
@@ -142,13 +181,27 @@ var controller = (function(budgetCtrl, UICtrl) {
         });
     }
 
-    var init = function() {
-        setEvent();
-        UICtrl.updateTotalBudget({
-            income: 0,
-            expense: 0,
-            budget: 0
+    function loadData() {
+        return tempData;
+    }
+
+    function initRender(data) {
+        data['income'].forEach(function(item) {
+            UIController.addListItem(item);
+            budgetCtrl.sumTotal(item);
         });
+        data['expense'].forEach(function(item) {
+            UIController.addListItem(item);
+            budgetCtrl.sumTotal(item);
+        });
+        UICtrl.updateTotalBudget(budgetCtrl.getTotals());
+    }
+
+    var init = function() {
+        var data;
+        data = loadData();
+        setEvent();
+        initRender(data);
     }
 
     return {
