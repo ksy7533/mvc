@@ -42,15 +42,6 @@ var budgetController = (function() {
         this.id = obj.id;
     }
 
-    function sumTotal(inputData) {
-        if (inputData.type === 'income') {
-            data.totals.income += inputData.value;
-        } else if (inputData.type === 'expense') {
-            data.totals.expense += inputData.value;
-        }
-        data.totals.budget = data.totals.income - data.totals.expense;
-    }
-
     function createDataID(type) {
         var dataID;
         if (data[type].length > 0) {
@@ -59,6 +50,14 @@ var budgetController = (function() {
             dataID = 0;
         }
         return dataID;
+    }
+
+    function sumTotal(type) {
+        var sum = 0;
+        for (var i = 0; i < data[type].length; i++) {
+            sum += data[type][i].value;
+        };
+        return sum;
     }
 
     var addInputData = function(obj) {
@@ -73,13 +72,21 @@ var budgetController = (function() {
         }
     }
 
-    var calculateTotal = function(inputData) {
-        sumTotal(inputData)
+    var calculateTotal = function() {
+        data.totals.income = sumTotal('income');
+        data.totals.expense = sumTotal('expense');
+        data.totals.budget = data.totals.income - data.totals.expense;
         return data.totals;
     }
 
-    var getTotals = function() {
-        return data.totals;
+    var removeInputData = function(dataID, type) {
+        var index;
+        for (var i = 0; i < data[type].length; i++) {
+            if (data[type][i].id === dataID) {
+                index = i;
+            }
+        }
+        data[type].splice(index, 1);
     }
 
     var printData = function() {
@@ -100,7 +107,8 @@ var budgetController = (function() {
         addInputData: addInputData,
         sumTotal: sumTotal,
         calculateTotal: calculateTotal,
-        getTotals: getTotals,
+        calculateTotal: calculateTotal,
+        removeInputData: removeInputData,
 
         printData: printData
     }
@@ -117,7 +125,8 @@ var UIController = (function() {
         BUDGET_EXPENSES_VALUE: '.budget__expenses--value',
         BUDGET_VALUE: '.budget__value',
         INCOME_LIST: '.income__list',
-        EXPENSE_LIST: '.expenses__list'
+        EXPENSE_LIST: '.expenses__list',
+        CONTAINER: '.container'
     }
 
     function clearInput() {
@@ -170,9 +179,9 @@ var UIController = (function() {
 })();
 
 var controller = (function(budgetCtrl, UICtrl) {
-    function updateBudget(inputData) {
+    function updateBudget() {
         var totals;
-        totals = budgetCtrl.calculateTotal(inputData);
+        totals = budgetCtrl.calculateTotal();
         UICtrl.updateTotalBudget(totals);
     }
 
@@ -184,7 +193,22 @@ var controller = (function(budgetCtrl, UICtrl) {
         }
         budgetCtrl.addInputData(inputData);
         UICtrl.addListItem(inputData);
-        updateBudget(inputData);
+        updateBudget();
+    }
+
+    function deleteList(event) {
+        var target, item, type, id, list;
+        target = event.target;
+        if (target.parentNode.className !== 'item__delete--btn') {
+            return;
+        }
+        item = target.parentNode.parentNode.parentNode.parentNode;
+        type = item.id.split('-')[0];
+        id = parseInt(item.id.split('-')[1]);
+        list = item.parentNode;
+        list.removeChild(item);
+        budgetCtrl.removeInputData(id, type);
+        UICtrl.updateTotalBudget(budgetCtrl.calculateTotal());
     }
 
     function setEvent() {
@@ -195,6 +219,7 @@ var controller = (function(budgetCtrl, UICtrl) {
             }
             updateList();
         });
+        document.querySelector(UICtrl.DOMStrings.CONTAINER).addEventListener('click', deleteList);
     }
 
     function loadData() {
@@ -204,15 +229,14 @@ var controller = (function(budgetCtrl, UICtrl) {
     function initRender(data) {
         data['income'].forEach(function(item) {
             budgetCtrl.addInputData(item);
-            budgetCtrl.sumTotal(item);
             UIController.addListItem(item);
         });
         data['expense'].forEach(function(item) {
             budgetCtrl.addInputData(item);
-            budgetCtrl.sumTotal(item);
             UIController.addListItem(item);
         });
-        UICtrl.updateTotalBudget(budgetCtrl.getTotals());
+
+        UICtrl.updateTotalBudget(budgetCtrl.calculateTotal());
     }
 
     var init = function() {
