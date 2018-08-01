@@ -12,6 +12,15 @@ var budgetController = (function() {
         this.description = obj.description;
     }
 
+    function sumTotal(inputData) {
+        if (inputData.type === 'income') {
+            data.totals.income += inputData.value;
+        } else if (inputData.type === 'expense') {
+            data.totals.expense += inputData.value;
+        }
+        data.totals.budget = data.totals.income - data.totals.expense;
+    }
+
     var addInpuData = function(obj) {
         var type = obj.type;
         if (type === 'income') {
@@ -21,16 +30,8 @@ var budgetController = (function() {
         }
     }
 
-    var sumTotal = function(inputData) {
-        if (inputData.type === 'income') {
-            data.totals.income += inputData.value;
-        } else if (inputData.type === 'expense') {
-            data.totals.expense += inputData.value;
-        }
-        data.totals.budget = data.totals.income - data.totals.expense;
-    }
-
-    var getTotal = function() {
+    var calculateTotal = function(inputData) {
+        sumTotal(inputData)
         return data.totals;
     }
 
@@ -47,7 +48,7 @@ var budgetController = (function() {
     return {
         addInpuData: addInpuData,
         sumTotal: sumTotal,
-        getTotal: getTotal
+        calculateTotal: calculateTotal
     }
 
 })();
@@ -82,10 +83,6 @@ var UIController = (function() {
     var addListItem = function(inputData) {
         var html, rHtml, list;
 
-        if (inputData.value === '' || inputData.description === '') {
-            return;
-        }
-
         if (inputData.type === 'income') {
             html = '<div class="item clearfix" id="income-0"><div class="item__description">{{description}}</div><div class="right clearfix"><div class="item__value">{{value}}</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
             list = document.querySelector(DOMStrings.INCOME_LIST);
@@ -112,11 +109,14 @@ var controller = (function(budgetCtrl, UICtrl) {
     function updateList() {
         var inputData = UICtrl.getInputData();
 
+        if (isNaN(inputData.value) || inputData.description === '') {
+            return;
+        }
+
         UICtrl.addListItem(inputData);
         budgetCtrl.addInpuData(inputData);
 
-        budgetCtrl.sumTotal(inputData);
-        var totals = budgetCtrl.getTotal();
+        var totals = budgetCtrl.calculateTotal(inputData);
         UICtrl.updateTotalBudget(totals);
     }
 
