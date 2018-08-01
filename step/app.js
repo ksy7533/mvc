@@ -42,6 +42,10 @@ var budgetController = (function() {
         this.id = obj.id;
     }
 
+    Expense.prototype.calculatePercent = function() {
+        this.percent = parseFloat(this.value / data.totals['expense'] * 100);
+    }
+
     function createDataID(type) {
         var dataID;
         if (data[type].length > 0) {
@@ -61,15 +65,17 @@ var budgetController = (function() {
     }
 
     var addInputData = function(obj) {
-        var type;
+        var type, obj;
         type = obj.type;
         obj.id = createDataID(type);
 
         if (type === 'income') {
-            data[type].push(new Income(obj));
+            obj = new Income(obj)
         } else if (type === 'expense') {
-            data[type].push(new Expense(obj));
+            obj = new Expense(obj)
         }
+
+        data[type].push(obj);
     }
 
     var calculateTotal = function() {
@@ -87,6 +93,12 @@ var budgetController = (function() {
             }
         }
         data[type].splice(index, 1);
+    }
+
+    var calculatePercent = function() {
+        data['expense'].forEach(function(item) {
+            item.calculatePercent();
+        });
     }
 
     var printData = function() {
@@ -109,6 +121,7 @@ var budgetController = (function() {
         calculateTotal: calculateTotal,
         calculateTotal: calculateTotal,
         removeInputData: removeInputData,
+        calculatePercent: calculatePercent,
 
         printData: printData
     }
@@ -226,17 +239,23 @@ var controller = (function(budgetCtrl, UICtrl) {
         return tempData;
     }
 
+    function updatePercentOfExpense() {
+        budgetController.calculatePercent();
+    }
+
     function initRender(data) {
         data['income'].forEach(function(item) {
             budgetCtrl.addInputData(item);
             UIController.addListItem(item);
         });
+
         data['expense'].forEach(function(item) {
             budgetCtrl.addInputData(item);
             UIController.addListItem(item);
         });
 
         UICtrl.updateTotalBudget(budgetCtrl.calculateTotal());
+        updatePercentOfExpense();
     }
 
     var init = function() {
