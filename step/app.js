@@ -106,16 +106,20 @@ var UIController = (function() {
 })();
 
 var controller = (function(budgetCtrl, UICtrl) {
+    function updateBudget(inputData) {
+        var totals;
+        budgetCtrl.addInpuData(inputData);
+        totals = budgetCtrl.calculateTotal(inputData);
+        UICtrl.updateTotalBudget(totals);
+    }
+
     function updateList() {
-        var inputData, totals;
-        inputData = UICtrl.getInputData();
+        var inputData = UICtrl.getInputData();
         if (isNaN(inputData.value) || inputData.description === '') {
             return;
         }
         UICtrl.addListItem(inputData);
-        budgetCtrl.addInpuData(inputData);
-        totals = budgetCtrl.calculateTotal(inputData);
-        UICtrl.updateTotalBudget(totals);
+        updateBudget(inputData);
     }
 
     function setEvent() {
