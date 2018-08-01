@@ -108,16 +108,17 @@ var UIController = (function() {
 var controller = (function(budgetCtrl, UICtrl) {
     function updateBudget(inputData) {
         var totals;
-        budgetCtrl.addInpuData(inputData);
         totals = budgetCtrl.calculateTotal(inputData);
         UICtrl.updateTotalBudget(totals);
     }
 
     function updateList() {
-        var inputData = UICtrl.getInputData();
+        var inputData;
+        inputData = UICtrl.getInputData();
         if (isNaN(inputData.value) || inputData.description === '') {
             return;
         }
+        budgetCtrl.addInpuData(inputData);
         UICtrl.addListItem(inputData);
         updateBudget(inputData);
     }
@@ -134,6 +135,11 @@ var controller = (function(budgetCtrl, UICtrl) {
 
     var init = function() {
         setEvent();
+        UICtrl.updateTotalBudget({
+            income: 0,
+            expense: 0,
+            budget: 0
+        });
     }
 
     return {
