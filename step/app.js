@@ -152,7 +152,8 @@ var UIController = (function() {
         INCOME_LIST: '.income__list',
         EXPENSE_LIST: '.expenses__list',
         CONTAINER: '.container',
-        ITEM_PERCENTAGE: '.item__percentage'
+        ITEM_PERCENTAGE: '.item__percentage',
+        BUDGET_EXPENSES_PERCENTAGE: '.budget__expenses--percentage'
     }
 
     function clearInput() {
@@ -175,6 +176,7 @@ var UIController = (function() {
         document.querySelector(DOMStrings.BUDGET_INCOME_VALUE).textContent = totals.income;
         document.querySelector(DOMStrings.BUDGET_EXPENSES_VALUE).textContent = totals.expense;
         document.querySelector(DOMStrings.BUDGET_VALUE).textContent = totals.budget;
+        document.querySelector(DOMStrings.BUDGET_EXPENSES_PERCENTAGE).textContent = parseInt((totals.expense / totals.income) * 100) + '%';
     }
 
     var updatePercent = function(expenses) {
