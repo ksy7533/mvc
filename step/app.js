@@ -82,7 +82,6 @@ var budgetController = (function() {
         data.totals.income = sumTotal('income');
         data.totals.expense = sumTotal('expense');
         data.totals.budget = data.totals.income - data.totals.expense;
-        return data.totals;
     }
 
     var removeInputData = function(dataID, type) {
@@ -103,10 +102,6 @@ var budgetController = (function() {
 
     var getTotals = function() {
         return data.totals;
-    }
-
-    var getIncome = function() {
-        return data.income;
     }
 
     var getIncome = function() {
@@ -135,14 +130,11 @@ var budgetController = (function() {
         addInputData: addInputData,
         sumTotal: sumTotal,
         calculateTotal: calculateTotal,
-        calculateTotal: calculateTotal,
         removeInputData: removeInputData,
         calculatePercent: calculatePercent,
-
         getTotals: getTotals,
         getIncome: getIncome,
         getExpense: getExpense,
-
         printData: printData
     }
 
@@ -159,7 +151,8 @@ var UIController = (function() {
         BUDGET_VALUE: '.budget__value',
         INCOME_LIST: '.income__list',
         EXPENSE_LIST: '.expenses__list',
-        CONTAINER: '.container'
+        CONTAINER: '.container',
+        ITEM_PERCENTAGE: '.item__percentage'
     }
 
     function clearInput() {
@@ -185,8 +178,9 @@ var UIController = (function() {
     }
 
     var updatePercent = function(expenses) {
-        var percentages = document.querySelectorAll('.item__percentage');
-        var arr = Array.prototype.slice.call(percentages);
+        var percentages, arr;
+        percentages = document.querySelectorAll(DOMStrings.ITEM_PERCENTAGE);
+        arr = Array.prototype.slice.call(percentages);
         arr.forEach(function(item, index) {
             item.textContent = (expenses[index].percent) + '%';
         });
@@ -194,7 +188,6 @@ var UIController = (function() {
 
     var addListItem = function(inputData) {
         var html, rHtml, list;
-
         if (inputData.type === 'income') {
             html = '<div class="item clearfix" id="income-{{id}}"><div class="item__description">{{description}}</div><div class="right clearfix"><div class="item__value">{{value}}</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
             list = document.querySelector(DOMStrings.INCOME_LIST);
@@ -202,7 +195,6 @@ var UIController = (function() {
             html = '<div class="item clearfix" id="expense-{{id}}"><div class="item__description">{{description}}</div><div class="right clearfix"><div class="item__value">{{value}}</div><div class="item__percentage">---</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
             list = document.querySelector(DOMStrings.EXPENSE_LIST);
         }
-
         rHtml = html.replace('{{description}}', inputData.description);
         rHtml = rHtml.replace('{{id}}', inputData.id);
         rHtml = rHtml.replace('{{value}}', inputData.value);
@@ -217,27 +209,27 @@ var UIController = (function() {
         getInputData: getInputData,
         updatePercent: updatePercent
     }
-
 })();
 
 var controller = (function(budgetCtrl, UICtrl) {
     function updateBudget() {
-        var totals;
-        totals = budgetCtrl.calculateTotal();
+        var totals, expense;
+        totals = budgetController.getTotals();
+        expense = budgetController.getExpense();
+        budgetCtrl.calculateTotal();
         UICtrl.updateTotalBudget(totals);
+        budgetController.calculatePercent();
+        UIController.updatePercent(expense);
     }
 
     function updateList() {
-        var inputData;
-        inputData = UICtrl.getInputData();
+        var inputData = UICtrl.getInputData();
         if (isNaN(inputData.value) || inputData.description === '') {
             return;
         }
         budgetCtrl.addInputData(inputData);
-        updateBudget();
-        updatePercentOfExpense();
         UICtrl.addListItem(inputData);
-        UIController.updatePercent(budgetController.getExpense());
+        updateBudget();
     }
 
     function deleteList(event) {
@@ -253,11 +245,13 @@ var controller = (function(budgetCtrl, UICtrl) {
         list.removeChild(item);
         budgetCtrl.removeInputData(id, type);
         updateBudget();
-        updatePercentOfExpense();
-        UIController.updatePercent(budgetController.getExpense());
     }
 
-    function setEvent() {
+    function loadData() {
+        return tempData;
+    }
+
+    function initEvent() {
         document.querySelector(UICtrl.DOMStrings.ADD_BTN).addEventListener('click', updateList);
         document.addEventListener('keypress', function(event) {
             if (event.keyCode !== 13) {
@@ -266,10 +260,6 @@ var controller = (function(budgetCtrl, UICtrl) {
             updateList();
         });
         document.querySelector(UICtrl.DOMStrings.CONTAINER).addEventListener('click', deleteList);
-    }
-
-    function loadData() {
-        return tempData;
     }
 
     function initData() {
@@ -283,28 +273,22 @@ var controller = (function(budgetCtrl, UICtrl) {
         budgetCtrl.calculateTotal();
     }
 
-    function updatePercentOfExpense() {
-        budgetController.calculatePercent();
-    }
-
     function initRender() {
-        var totals = budgetController.getTotals();
-        var income = budgetController.getIncome();
-        var expense = budgetController.getExpense();
-        UICtrl.updateTotalBudget(totals);
-        updatePercentOfExpense();
+        var income, expense;
+        income = budgetController.getIncome();
+        expense = budgetController.getExpense();
         income.forEach(function(item) {
             UIController.addListItem(item);
         });
         expense.forEach(function(item) {
             UIController.addListItem(item);
         });
-        UIController.updatePercent(budgetController.getExpense());
+        updateBudget();
     }
 
     var init = function() {
         initData();
-        setEvent();
+        initEvent();
         initRender();
     }
 
