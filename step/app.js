@@ -43,7 +43,7 @@ var budgetController = (function() {
     }
 
     Expense.prototype.calculatePercent = function() {
-        this.percent = parseFloat(this.value / data.totals['expense'] * 100);
+        this.percent = parseInt(this.value / data.totals['income'] * 100);
     }
 
     function createDataID(type) {
@@ -101,6 +101,22 @@ var budgetController = (function() {
         });
     }
 
+    var getTotals = function() {
+        return data.totals;
+    }
+
+    var getIncome = function() {
+        return data.income;
+    }
+
+    var getIncome = function() {
+        return data.income;
+    }
+
+    var getExpense = function() {
+        return data.expense;
+    }
+
     var printData = function() {
         return data;
     }
@@ -122,6 +138,10 @@ var budgetController = (function() {
         calculateTotal: calculateTotal,
         removeInputData: removeInputData,
         calculatePercent: calculatePercent,
+
+        getTotals: getTotals,
+        getIncome: getIncome,
+        getExpense: getExpense,
 
         printData: printData
     }
@@ -164,6 +184,14 @@ var UIController = (function() {
         document.querySelector(DOMStrings.BUDGET_VALUE).textContent = totals.budget;
     }
 
+    var updatePercent = function(expenses) {
+        var percentages = document.querySelectorAll('.item__percentage');
+        var arr = Array.prototype.slice.call(percentages);
+        arr.forEach(function(item, index) {
+            item.textContent = (expenses[index].percent) + '%';
+        });
+    }
+
     var addListItem = function(inputData) {
         var html, rHtml, list;
 
@@ -171,7 +199,7 @@ var UIController = (function() {
             html = '<div class="item clearfix" id="income-{{id}}"><div class="item__description">{{description}}</div><div class="right clearfix"><div class="item__value">{{value}}</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
             list = document.querySelector(DOMStrings.INCOME_LIST);
         } else if (inputData.type === 'expense') {
-            html = '<div class="item clearfix" id="expense-{{id}}"><div class="item__description">{{description}}</div><div class="right clearfix"><div class="item__value">{{value}}</div><div class="item__percentage">21%</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
+            html = '<div class="item clearfix" id="expense-{{id}}"><div class="item__description">{{description}}</div><div class="right clearfix"><div class="item__value">{{value}}</div><div class="item__percentage">---</div><div class="item__delete"><button class="item__delete--btn"><i class="ion-ios-close-outline"></i></button></div></div></div>'
             list = document.querySelector(DOMStrings.EXPENSE_LIST);
         }
 
@@ -186,7 +214,8 @@ var UIController = (function() {
         updateTotalBudget: updateTotalBudget,
         addListItem: addListItem,
         DOMStrings: DOMStrings,
-        getInputData: getInputData
+        getInputData: getInputData,
+        updatePercent: updatePercent
     }
 
 })();
@@ -205,8 +234,10 @@ var controller = (function(budgetCtrl, UICtrl) {
             return;
         }
         budgetCtrl.addInputData(inputData);
-        UICtrl.addListItem(inputData);
         updateBudget();
+        updatePercentOfExpense();
+        UICtrl.addListItem(inputData);
+        UIController.updatePercent(budgetController.getExpense());
     }
 
     function deleteList(event) {
@@ -221,7 +252,9 @@ var controller = (function(budgetCtrl, UICtrl) {
         list = item.parentNode;
         list.removeChild(item);
         budgetCtrl.removeInputData(id, type);
-        UICtrl.updateTotalBudget(budgetCtrl.calculateTotal());
+        updateBudget();
+        updatePercentOfExpense();
+        UIController.updatePercent(budgetController.getExpense());
     }
 
     function setEvent() {
@@ -239,30 +272,40 @@ var controller = (function(budgetCtrl, UICtrl) {
         return tempData;
     }
 
+    function initData() {
+        var data = loadData();
+        data['income'].forEach(function(item) {
+            budgetCtrl.addInputData(item);
+        });
+        data['expense'].forEach(function(item) {
+            budgetCtrl.addInputData(item);
+        });
+        budgetCtrl.calculateTotal();
+    }
+
     function updatePercentOfExpense() {
         budgetController.calculatePercent();
     }
 
-    function initRender(data) {
-        data['income'].forEach(function(item) {
-            budgetCtrl.addInputData(item);
-            UIController.addListItem(item);
-        });
-
-        data['expense'].forEach(function(item) {
-            budgetCtrl.addInputData(item);
-            UIController.addListItem(item);
-        });
-
-        UICtrl.updateTotalBudget(budgetCtrl.calculateTotal());
+    function initRender() {
+        var totals = budgetController.getTotals();
+        var income = budgetController.getIncome();
+        var expense = budgetController.getExpense();
+        UICtrl.updateTotalBudget(totals);
         updatePercentOfExpense();
+        income.forEach(function(item) {
+            UIController.addListItem(item);
+        });
+        expense.forEach(function(item) {
+            UIController.addListItem(item);
+        });
+        UIController.updatePercent(budgetController.getExpense());
     }
 
     var init = function() {
-        var data;
-        data = loadData();
+        initData();
         setEvent();
-        initRender(data);
+        initRender();
     }
 
     return {
